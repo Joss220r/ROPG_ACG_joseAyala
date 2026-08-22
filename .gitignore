@@ -1,0 +1,6 @@
+.env
+node_modules/
+database/*.sqlite
+database/*.sqlite-journal
+coverage/
+npm-debug.log*

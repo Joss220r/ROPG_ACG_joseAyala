@@ -1,0 +1,19 @@
+{
+  "name": "musichub-oauth-semana7",
+  "version": "1.0.0",
+  "description": "MusicHub OAuth 2.0 lab with ROPC and Authorization Code + PKCE flows.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test:ropc": "node tests/ropc.acceptance.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "sql.js": "^1.12.0",
+    "uuid": "^11.0.5"
+  }
+}
