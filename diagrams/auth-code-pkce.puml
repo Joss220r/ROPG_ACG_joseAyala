@@ -1,0 +1,41 @@
+@startuml
+title MusicHub - Authorization Code Grant with PKCE S256
+
+actor "Resource owner\nalumno.demo" as Owner
+participant "Public web client\nmusic-web" as Client
+participant "Browser" as Browser
+participant "Authorization server\n/oauth" as Auth
+participant "Resource server\n/api" as Resource
+database "MusicHub database" as DB
+
+Client -> Client: Generate code_verifier\nand state
+Client -> Client: code_challenge = BASE64URL(SHA-256(code_verifier))
+Client -> Browser: Redirect to /oauth/authorize\nresponse_type=code, client_id,\nredirect_uri, scope, state,\ncode_challenge, method=S256
+Browser -> Auth: GET /oauth/authorize
+Auth -> DB: Validate client, redirect_uri and scopes
+DB --> Auth: Registered public client
+Auth --> Browser: Login and consent page
+
+Owner -> Browser: Enters credentials and approves scopes
+Browser -> Auth: POST /oauth/authorize\nusername, password, approve=yes
+Auth -> DB: Validate user password hash
+Auth -> Auth: Create high-entropy code\nbound to user, client, redirect_uri,\nscope and code_challenge
+Auth --> Browser: 302 redirect_uri?code=...&state=...
+Browser --> Client: Callback with code and state
+Client -> Client: Compare returned state\nwith original state
+
+Client -> Auth: POST /oauth/token\ngrant_type=authorization_code\ncode, client_id, redirect_uri,\ncode_verifier
+Auth -> DB: Load authorization code
+Auth -> Auth: Validate one-use code,\nexpiration, redirect_uri and PKCE S256
+Auth -> DB: Mark code as consumed
+Auth --> Client: 200 access_token
+
+Client -> Resource: GET /api/playlists\nAuthorization: Bearer access_token
+Resource -> Resource: Verify JWT and playlists.read
+Resource --> Client: 200 playlists
+
+note over Client,Auth
+The access token is returned only from /oauth/token.
+It is never placed in the redirect URL.
+end note
+@enduml

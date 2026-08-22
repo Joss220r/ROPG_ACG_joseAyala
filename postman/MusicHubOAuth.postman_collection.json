@@ -1,0 +1,165 @@
+{
+  "info": {
+    "name": "MusicHub OAuth 2.0 Acceptance Checks",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Requests for the Week 7 MusicHub OAuth lab. Automated Node scripts under tests/ are the primary executable evidence; this collection is included for manual Postman review."
+  },
+  "item": [
+    {
+      "name": "A1 - ROPC valid token",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "password" },
+            { "key": "username", "value": "alumno.demo" },
+            { "key": "password", "value": "AlumnoDemo!2026" },
+            { "key": "client_id", "value": "legacy-client" },
+            { "key": "client_secret", "value": "legacy-secret-demo" },
+            { "key": "scope", "value": "profile.read playlists.read" }
+          ]
+        },
+        "url": "{{base_url}}/oauth/token"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('A1 status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('access_token', body.access_token);",
+              "pm.test('A1 token is Bearer', () => pm.expect(body.token_type).to.eql('Bearer'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "A1 - Access /api/me",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": "{{base_url}}/api/me"
+      }
+    },
+    {
+      "name": "A2 - ROPC wrong password",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "password" },
+            { "key": "username", "value": "alumno.demo" },
+            { "key": "password", "value": "wrong-password" },
+            { "key": "client_id", "value": "legacy-client" },
+            { "key": "client_secret", "value": "legacy-secret-demo" },
+            { "key": "scope", "value": "profile.read playlists.read" }
+          ]
+        },
+        "url": "{{base_url}}/oauth/token"
+      }
+    },
+    {
+      "name": "A3 - Missing token",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/me"
+      }
+    },
+    {
+      "name": "B1 - Open authorization page",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/oauth/authorize?response_type=code&client_id=music-web&redirect_uri=http://127.0.0.1:8081/callback&scope=profile.read%20playlists.read&state=manual-state&code_challenge={{code_challenge}}&code_challenge_method=S256"
+      }
+    },
+    {
+      "name": "B1 - Submit consent",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "response_type", "value": "code" },
+            { "key": "client_id", "value": "music-web" },
+            { "key": "redirect_uri", "value": "http://127.0.0.1:8081/callback" },
+            { "key": "scope", "value": "profile.read playlists.read" },
+            { "key": "state", "value": "manual-state" },
+            { "key": "code_challenge", "value": "{{code_challenge}}" },
+            { "key": "code_challenge_method", "value": "S256" },
+            { "key": "username", "value": "alumno.demo" },
+            { "key": "password", "value": "AlumnoDemo!2026" },
+            { "key": "approve", "value": "yes" }
+          ]
+        },
+        "url": "{{base_url}}/oauth/authorize"
+      }
+    },
+    {
+      "name": "B1 - Exchange code",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "authorization_code" },
+            { "key": "code", "value": "{{authorization_code}}" },
+            { "key": "client_id", "value": "music-web" },
+            { "key": "redirect_uri", "value": "http://127.0.0.1:8081/callback" },
+            { "key": "code_verifier", "value": "{{code_verifier}}" }
+          ]
+        },
+        "url": "{{base_url}}/oauth/token"
+      }
+    },
+    {
+      "name": "B2 - Bad redirect_uri",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "response_type", "value": "code" },
+            { "key": "client_id", "value": "music-web" },
+            { "key": "redirect_uri", "value": "http://127.0.0.1:9999/evil" },
+            { "key": "scope", "value": "profile.read playlists.read" },
+            { "key": "state", "value": "manual-state" },
+            { "key": "code_challenge", "value": "{{code_challenge}}" },
+            { "key": "code_challenge_method", "value": "S256" },
+            { "key": "username", "value": "alumno.demo" },
+            { "key": "password", "value": "AlumnoDemo!2026" },
+            { "key": "approve", "value": "yes" }
+          ]
+        },
+        "url": "{{base_url}}/oauth/authorize"
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8080" },
+    { "key": "access_token", "value": "" },
+    { "key": "code_verifier", "value": "set-a-random-verifier-before-manual-pkce-test" },
+    { "key": "code_challenge", "value": "set-S256-challenge-before-manual-pkce-test" },
+    { "key": "authorization_code", "value": "paste-code-from-redirect" }
+  ]
+}

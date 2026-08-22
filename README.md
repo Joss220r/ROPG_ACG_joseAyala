@@ -11,7 +11,7 @@ Local OAuth 2.0 practice API for the Week 7 assignment. It implements Resource O
 - Password storage: bcrypt hashes only
 - Persistence: local SQLite-compatible database file managed by `sql.js` at `database/musichub.sqlite`
 
-Postman/Insomnia collection, diagrams and final evidence notes are planned for the next phase.
+Editable diagrams, acceptance scripts and a Postman collection are included for delivery evidence.
 
 ## Requirements
 
@@ -103,6 +103,7 @@ Authorization codes expire after 120 seconds and can be used only once.
 
 ```bash
 npm test
+npm run test:acceptance
 npm run test:ropc
 npm run test:pkce
 ```
@@ -117,6 +118,15 @@ The scripts execute real HTTP requests for:
 - B3: wrong `code_verifier` returns `invalid_grant`.
 - B4: a second exchange of the same code fails.
 - B5: returned `state` is available for the client to compare before accepting the flow.
+
+## Delivery artifacts
+
+- `diagrams/ropc.puml`: editable ROPC sequence diagram.
+- `diagrams/auth-code-pkce.puml`: editable Authorization Code + PKCE sequence diagram.
+- `postman/MusicHubOAuth.postman_collection.json`: manual Postman collection with the main requests.
+- `tests/ropc.acceptance.mjs` and `tests/pkce.acceptance.mjs`: executable HTTP acceptance checks for A1-A3 and B1-B5.
+- `docs/ANALISIS_COMPARATIVO.md`: 250-400 word comparison of ROPC and Authorization Code with PKCE.
+- `EVIDENCIAS.md`: evidence checklist and results table to complete with screenshots and repository data.
 
 ## Security notes
 

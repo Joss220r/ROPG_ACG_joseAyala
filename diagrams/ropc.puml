@@ -1,0 +1,35 @@
+@startuml
+title MusicHub - Resource Owner Password Credentials
+
+actor "Resource owner\nalumno.demo" as Owner
+participant "Legacy client\nlegacy-client" as Client
+participant "Authorization server\n/oauth/token" as Auth
+participant "Resource server\n/api" as Resource
+database "MusicHub database" as DB
+
+Owner -> Client: Provides username and password
+Client -> Auth: POST /oauth/token\ngrant_type=password\nclient_id + client_secret\nscope=profile.read playlists.read
+Auth -> DB: Load client, user and allowed scopes
+DB --> Auth: Hashed password, client secret hash and scopes
+Auth -> Auth: Validate grant, client secret,\nuser password and requested scopes
+Auth -> Auth: Sign JWT with iss, sub, aud,\niat, exp, jti, client_id, scope
+Auth --> Client: 200 access_token, token_type,\nexpires_in, scope
+
+Client -> Resource: GET /api/me\nAuthorization: Bearer access_token
+Resource -> Resource: Verify JWT signature,\nissuer, audience, exp and profile.read
+Resource -> DB: Load profile for token subject
+DB --> Resource: User profile
+Resource --> Client: 200 profile
+
+Client -> Resource: GET /api/playlists\nAuthorization: Bearer access_token
+Resource -> Resource: Verify playlists.read scope
+Resource -> DB: Load playlists for token subject
+DB --> Resource: Authorized playlists
+Resource --> Client: 200 playlists
+
+note over Owner,Client
+ROPC is included only as a legacy lab flow.
+The client handles the password, so it is not recommended
+for new applications.
+end note
+@enduml

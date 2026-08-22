@@ -56,6 +56,10 @@ async function exchange(code, verifier) {
   });
 }
 
+function shouldAcceptState(expectedState, receivedState) {
+  return expectedState === receivedState;
+}
+
 try {
   const pkce = makePkcePair();
   const { response, verifier } = await authorize(pkce);
@@ -67,6 +71,7 @@ try {
   const redirect = new URL(location);
   assert.equal(redirect.origin + redirect.pathname, 'http://127.0.0.1:8081/callback');
   assert.equal(redirect.searchParams.get('state'), 'state-ok', 'B5 client can compare returned state');
+  assert.equal(shouldAcceptState('state-ok', redirect.searchParams.get('state')), true);
   assert.ok(redirect.searchParams.get('code'));
 
   const tokenResponse = await exchange(redirect.searchParams.get('code'), verifier);
@@ -100,7 +105,9 @@ try {
   assert.equal((await exchange(reuseCode, reusePkce.verifier)).status, 200);
   assert.equal((await exchange(reuseCode, reusePkce.verifier)).status, 400, 'B4 should reject reused code');
 
-  console.log('PKCE acceptance checks passed: B1, B2, B3, B4 and state echo for B5.');
+  assert.equal(shouldAcceptState('expected-state', 'attacker-state'), false, 'B5 client should cancel on state mismatch');
+
+  console.log('PKCE acceptance checks passed: B1, B2, B3, B4 and B5 client state check.');
 } finally {
   server.close();
 }
