@@ -6,7 +6,9 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test:ropc": "node tests/ropc.acceptance.mjs"
+    "test": "npm run test:ropc && npm run test:pkce",
+    "test:ropc": "node tests/ropc.acceptance.mjs",
+    "test:pkce": "node tests/pkce.acceptance.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

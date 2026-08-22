@@ -66,6 +66,21 @@ function migrate() {
       track_count INTEGER NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+    CREATE TABLE IF NOT EXISTS authorization_codes (
+      code TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      client_id TEXT NOT NULL,
+      redirect_uri TEXT NOT NULL,
+      scope TEXT NOT NULL,
+      code_challenge TEXT NOT NULL,
+      code_challenge_method TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      consumed_at INTEGER,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (client_id) REFERENCES oauth_clients(id)
+    );
   `);
 }
 
@@ -170,6 +185,33 @@ export const store = {
       'SELECT id, name, track_count FROM playlists WHERE user_id = ? ORDER BY name',
       [userId]
     );
+  },
+
+  saveAuthorizationCode(codeData) {
+    run(
+      `INSERT INTO authorization_codes
+        (code, user_id, client_id, redirect_uri, scope, code_challenge, code_challenge_method, expires_at, consumed_at, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        codeData.code,
+        codeData.userId,
+        codeData.clientId,
+        codeData.redirectUri,
+        codeData.scope,
+        codeData.codeChallenge,
+        codeData.codeChallengeMethod,
+        codeData.expiresAt,
+        null,
+        codeData.createdAt
+      ]
+    );
+  },
+
+  getAuthorizationCode(code) {
+    return queryOne('SELECT * FROM authorization_codes WHERE code = ?', [code]);
+  },
+
+  consumeAuthorizationCode(code) {
+    run('UPDATE authorization_codes SET consumed_at = ? WHERE code = ?', [Math.floor(Date.now() / 1000), code]);
   }
 };
-
